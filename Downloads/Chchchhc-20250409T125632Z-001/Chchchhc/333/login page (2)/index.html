@@ -1,0 +1,101 @@
+<html lang="en">
+<head>
+    <!-- Firebase App (required) -->
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js" type="module"></script>
+    <!-- Firebase Authentication (for Google sign-in) -->
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js" type="module"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPCC Login</title>
+    <link rel="icon" href="icon.png"/>
+    <link rel="stylesheet" href="login.css"/>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-title">SPCC Login</div>
+        <p class="login-description">Sign in with your SPCC account</p>
+        <button class="google-btn" id="google-sign-in">
+            <img src="gugols.png" alt="Google Logo">
+            <span>Sign in with Google</span>
+        </button>
+    </br>
+    
+    <p id="loginMessage" style="color: #374151; font-weight: bold;"></p></a>
+       
+    </div>
+
+    <!-- Import Firebase SDK modules and initialize Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbChGGE7nyQ7bHReH5TSykL_vdHrMoSEM",
+            authDomain: "spcc-login-dceca.firebaseapp.com",
+            projectId: "spcc-login-dceca",
+            storageBucket: "spcc-login-dceca.firebasestorage.app",
+            messagingSenderId: "944505962080",
+            appId: "1:944505962080:web:2357f70b1d0b96bcc58d05",
+            measurementId: "G-N261DVNLW8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app); 
+        const provider = new GoogleAuthProvider();
+
+        // Enforce SPCC domain before login attempt
+        provider.setCustomParameters({
+            hd: "spcc.edu.ph"
+        });
+
+        function signInWithGoogle() {
+            console.log('Google Sign-In Triggered');
+
+            // Force Google to show the account picker
+            provider.setCustomParameters({
+                prompt: "select_account"
+            });
+
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    const user = result.user;
+                    console.log('User logged in:', user);
+
+                    if (user.email.endsWith('@spcc.edu.ph')) {
+                        document.getElementById('loginMessage').innerText = `Welcome, ${user.displayName}!`;
+                        document.getElementById('loginMessage').style.color = 'green';
+                        
+                        window.location.href = "main.html";
+                    } else {
+                        document.getElementById('loginMessage').innerText = 'Invalid email. Please use your SPCC account.';
+                        document.getElementById('loginMessage').style.color = 'red';
+                        
+                        auth.signOut();
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error signing in:', error);
+                    document.getElementById('loginMessage').innerText = 'An error occurred during the sign-in process.';
+                    document.getElementById('loginMessage').style.color = 'red';
+                });
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            setTimeout(() => { 
+                if (user) {
+                    if (user.email.endsWith('@spcc.edu.ph')) {
+                        window.location.href = "main.html";
+                    } else {
+                        document.getElementById('loginMessage').innerText = 'Invalid email. Please use your SPCC account.';
+                        document.getElementById('loginMessage').style.color = 'red';
+                        auth.signOut();
+                    }
+                }
+            }, 1000);
+        });
+
+        document.getElementById("google-sign-in").addEventListener("click", signInWithGoogle);
+
+    </script>
+</body>
+</html>

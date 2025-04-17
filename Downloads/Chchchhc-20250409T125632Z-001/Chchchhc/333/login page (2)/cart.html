@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page</title>
+    <link rel="icon" href="icon.png"/>
+    <style>
+        /* General Styling */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: radial-gradient(circle, rgba(238,174,202,1) 0%, rgba(148,187,233,1) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: background 1s ease-in-out;
+        }
+        h3 { color: white; text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4); }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 0;
+            animation: fadeIn 0.6s ease-out;
+        }
+        .nav-buttons a {
+            text-decoration: none;
+            background: radial-gradient(circle, rgba(255,228,240,1) 72%, rgba(255,255,255,1) 100%);
+            padding: 10px 12px;
+            color: rgb(40, 40, 40);
+            font-weight: bold;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .nav-buttons a:hover {
+            background: radial-gradient(circle, rgb(255, 215, 233) 72%, rgb(238, 188, 188) 100%);
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .cart-container {
+            width: 90%;
+            max-width: 600px;
+            background: rgba(0, 0, 0, 0.2);
+            color: rgb(0, 0, 0);
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            animation: fadeIn 0.6s ease-out;
+        }
+        .cart-item {
+            margin: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: radial-gradient(circle, rgba(255,228,240,1) 72%, rgba(255,255,255,1) 100%);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            animation: slideIn 0.5s ease-out;
+        }
+        .cart-item span {
+            font-size: 1.1em;
+            color: #333;
+            flex-grow: 1;
+            padding-right: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cart-item button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+        .cart-item button:hover {
+            background: #c0392b;
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .clear-cart {
+            background: lightblue;
+            color: rgb(0, 0, 0);
+            border: none;
+            cursor: pointer;
+            border-radius: 30px;
+            font-weight: bold;
+            padding: 15px;
+            margin: 30px;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+        .clear-cart:hover {
+            background-color: #ff6347;
+            color: white;
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-buttons">
+        <a href="shop.html">Book Shop</a>
+        <a href="shop1.html">Uniform Shop</a>
+        <a href="main.html">Home</a>
+    </div>
+    <h3>Your Cart</h3>
+    <div class="cart-container" id="cart-items">
+        <p>Your cart is empty.</p>
+    </div>
+    <button class="clear-cart" onclick="clearCart()">Clear Cart</button>
+    
+    <script>
+        function formatPrice(price) {
+            return price.toLocaleString();
+        }
+
+        function displayCart() {
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+            const cartItems = document.getElementById("cart-items");
+            cartItems.innerHTML = cart.length === 0 ? "<p>Your cart is empty.</p>" : "";
+
+            const groupedCart = cart.reduce((acc, item) => {
+                const existingItem = acc.find(i => i.name === item.name);
+                if (existingItem) {
+                    existingItem.quantity++;
+                } else {
+                    acc.push({ ...item, quantity: 1 });
+                }
+                return acc;
+            }, []);
+
+            groupedCart.forEach(item => {
+                const cartItem = document.createElement("div");
+                cartItem.classList.add("cart-item");
+                cartItem.innerHTML = `
+                    <span>${item.name} x${item.quantity} - ₱${formatPrice(item.price * item.quantity)}</span>
+                    <button onclick="removeFromCart('${item.name}')">Remove</button>
+                    <button class="buy-now" onclick="buyNow('${item.name}', ${item.price}, ${item.quantity})">Reserve</button>
+                `;
+                cartItems.appendChild(cartItem);
+            });
+        }
+
+        function removeFromCart(name) {
+            let cart = JSON.parse(localStorage.getItem("cart")) || [];
+            cart = cart.filter(item => item.name !== name);
+            localStorage.setItem("cart", JSON.stringify(cart));
+            displayCart();
+        }
+
+        function clearCart() {
+            localStorage.removeItem("cart");
+            displayCart();
+        }
+
+        function buyNow(name, price, quantity) {
+            const selectedItem = [{ name, price, quantity }];
+            localStorage.setItem("selectedItems", JSON.stringify(selectedItem));
+            window.location.href = "itemconf.html"; // Redirect to confirmation page
+        }
+
+        window.onload = displayCart;
+    </script>
+</body>
+</html>

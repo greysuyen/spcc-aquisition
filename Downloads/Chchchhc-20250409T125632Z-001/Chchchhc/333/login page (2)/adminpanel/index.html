@@ -1,0 +1,124 @@
+<html lang="en">
+<head>
+    <!-- Firebase App (required) -->
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js" type="module"></script>
+    <!-- Firebase Authentication (for Google sign-in) -->
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js" type="module"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPCC Login</title>
+    <link rel="icon" href="icon.png"/>
+    <link rel="stylesheet" href="login.css"/>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-title">Admin Login</div>
+        <p class="login-description"></p>
+        <br/>
+        <a href="../index.html" style="text-decoration: none;"><button class="google-btn" id="google-sign-in">
+            <span>Sign-in again</span>
+        </button></a>
+        
+        <p id="loginMessage" style="color: #374151; font-weight: bold;"></p>
+    </div>
+
+    <!-- Import Firebase SDK modules and initialize Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+    
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbChGGE7nyQ7bHReH5TSykL_vdHrMoSEM",
+            authDomain: "spcc-login-dceca.firebaseapp.com",
+            projectId: "spcc-login-dceca",
+            storageBucket: "spcc-login-dceca.firebasestorage.app",
+            messagingSenderId: "944505962080",
+            appId: "1:944505962080:web:2357f70b1d0b96bcc58d05",
+            measurementId: "G-N261DVNLW8"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app); 
+        const provider = new GoogleAuthProvider();
+    
+        provider.setCustomParameters({
+            hd: "@gmail.com"
+        });
+    
+        const allowedEmail = "ambay_johncarl@spcc.edu.ph"; // Your email for admin login
+    
+        setPersistence(auth, browserLocalPersistence)
+          .then(() => {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    if (user.email === allowedEmail) {
+                        window.location.href = "adminpanel.html"; // Redirect to admin page
+                    } else {
+                        document.getElementById('loginMessage').innerText = 'Login failed. Only the authorized user can log in.';
+                        document.getElementById('loginMessage').style.color = 'red';
+                        auth.signOut(); // Sign out the user if not authorized
+                    }
+                }
+            });
+          })
+          .catch((error) => {
+            console.error("Error setting persistence:", error);
+          });
+    
+        function signInWithGoogle() {
+            console.log('Google Sign-In Triggered');
+    
+            provider.setCustomParameters({
+                prompt: "select_account"
+            });
+    
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    const user = result.user;
+                    console.log('User logged in:', user);
+    
+                    if (user.email === allowedEmail) {
+                        document.getElementById('loginMessage').innerText = `Welcome, ${user.displayName}!`;
+                        document.getElementById('loginMessage').style.color = 'green';
+                        window.location.href = "adminpanel.html"; // Redirect to admin page
+                    } else {
+                        document.getElementById('loginMessage').innerText = 'Login failed. Only the authorized user can log in.';
+                        document.getElementById('loginMessage').style.color = 'red';
+                        auth.signOut(); // Sign out the user immediately
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error signing in:', error);
+                    document.getElementById('loginMessage').innerText = 'An error occurred during the sign-in process.';
+                    document.getElementById('loginMessage').style.color = 'red';
+                });
+        }
+        window.onload = function () {
+    // Check if the 'loggedOut' flag exists in sessionStorage
+    if (sessionStorage.getItem('loggedOut') === 'true') {
+        // Remove the 'loggedOut' flag after checking it, to prevent repeated redirects
+        sessionStorage.removeItem('loggedOut');
+        
+        // Force redirect to the login page, so the user cannot go back
+        window.location.replace("adminlogin.html");
+
+        // Manipulate the browser history to prevent going back to previous page
+        window.history.pushState(null, null, location.href); 
+        window.history.forward();  // Forward to prevent back
+    } else {
+        // If already logged in, redirect to admin panel
+        const user = auth.currentUser;
+        if (user) {
+            window.location.replace("adminpanel.html");
+        }
+    }
+};
+    
+        // Prevent going back to the previous page after logging out
+        function preventBackNavigation() {
+            window.history.pushState(null, null, location.href);
+            window.history.forward();
+        }
+    </script>
+</body>
+</html>

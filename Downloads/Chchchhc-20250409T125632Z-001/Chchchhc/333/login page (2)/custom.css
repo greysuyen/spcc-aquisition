@@ -1,0 +1,28 @@
+/* Mac-style Stoplight Buttons */
+.monaco-workbench .titlebar {
+    display: flex;
+    flex-direction: row-reverse;
+    padding: 10px;
+}
+.monaco-workbench .titlebar .window-controls-container {
+    position: absolute;
+    left: 10px;
+    top: 5px;
+    display: flex;
+    gap: 8px;
+}
+.monaco-workbench .titlebar .window-controls-container > div {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.monaco-workbench .titlebar .window-controls-container .close {
+    background: red;
+}
+.monaco-workbench .titlebar .window-controls-container .minimize {
+    background: yellow;
+}
+.monaco-workbench .titlebar .window-controls-container .maximize {
+    background: green;
+}

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SPCC Shop</title>
+        <link rel="stylesheet" href="main.css">
+        <link rel="icon" href="icon.png"/>
+        <style>
+        </style>
+    </head>
+    <body>
+        <header>
+            <nav>
+                <div>
+                    <ul id="nav-links">               
+                        <li><button id="sidebar-toggle">☰</button></li>
+                        <li><img src="/images (1)/spcc.png" alt="Logo" class="logo" width="20px"></li>
+                        <li class="site-name" id="sitename">SPCC-ORS</li>
+                    </ul>
+                </div>
+            </nav>
+            <nav>
+                <div>
+                    <ul class="nav-linkzs">
+                        <li><a href="#" id="profile-btn"></a></li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+    
+        <div class="small-tab" id="smallTab">
+            <p>Name: </p>
+            <p>Email: </p>
+            <button id="logout-btn">Log out</button>
+        </div>
+    
+        <section class="container">
+            <div id="sidebar">
+                <button id="close-sidebar">✖</button>
+                <h2 id="r-text">Resources</h2>
+                <div class="r-txt">
+                    <a href="#" id="booktxt"><p>Reserve</p></a> 
+                    <a href="cart.html" id="cart-txt">Cart</a>
+                    <a id="guide">Guidelines</a>
+                    <a href="adminpanel/index.html"><p>Login as Admin</p></a>
+                </div>
+            </div>
+    
+            <div id="book-popup">
+                <button id="close-popup">✖</button>
+                <h3 id="option_pick">Pick an Option</h3>
+                <a href="book.html">
+                    <p id="bktxt">Books</p>
+                </a>
+                <a href="shop1.html">
+                    <p id="unftxt">Uniforms</p>
+                </a>
+            </div>
+        </section>
+    
+            <section>
+
+                <div class="ors-info">
+                    <h2 id="info">What is Online Reservation System</h2>
+
+                    <br/>
+                    
+                    <p id="inf-txt">The Online Reservation System features an intuitive and user-friendly interface that provides comprehensive information regarding the availability and pricing of materials. Students can efficiently navigate the website, select the required items, and place a reservation, thereby eliminating the inconvenience of prolonged queues at the Business Center. Once a reservation is submitted, the system automatically notifies the Business Center administration via email, allowing them to prepare the requested items in advance for seamless pick-up. The final transaction is completed through an in-person cash payment at the Business Center.</p>
+                </div>
+
+            </section>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+    
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbChGGE7nyQ7bHReH5TSykL_vdHrMoSEM",
+            authDomain: "spcc-login-dceca.firebaseapp.com",
+            projectId: "spcc-login-dceca",
+            storageBucket: "spcc-login-dceca.firebasestorage.app",
+            messagingSenderId: "944505962080",
+            appId: "1:944505962080:web:2357f70b1d0b96bcc58d05",
+            measurementId: "G-N261DVNLW8"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+    
+        function toggleTab() {
+            const smallTab = document.getElementById('smallTab');
+            smallTab.classList.toggle('open');
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+    const bookTxt = document.getElementById("booktxt");
+    const bookPopup = document.getElementById("book-popup");
+    const closePopup = document.getElementById("close-popup");
+    const sidebar = document.getElementById("sidebar");
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const closeSidebar = document.getElementById("close-sidebar");
+
+    function isMobile() {
+        return window.innerWidth <= 768; 
+    }
+
+    bookTxt.addEventListener("click", function (event) {
+        event.preventDefault(); 
+        bookPopup.classList.add("active");
+
+        if (isMobile()) {
+            sidebar.style.left = "-270px"; 
+        }
+    });
+
+    closePopup.addEventListener("click", function () {
+        bookPopup.classList.remove("active");
+    });
+
+    closeSidebar.addEventListener("click", function () {
+        sidebar.style.left = "-270px"; 
+    });
+
+    sidebarToggle.addEventListener("click", function () {
+        sidebar.style.left = "0"; 
+    });
+});
+        document.getElementById('profile-btn').addEventListener('click', toggleTab);
+    
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.replace("index.html");
+            } else {
+                const photoURL = user.photoURL || "default-profile.png"; 
+
+                document.getElementById('profile-btn').innerHTML = `
+                    <div class="profile-container" title="Settings">
+                        <img src="${photoURL}" alt="Profile" width="35px" style="border-radius: 50%; vertical-align: middle;">
+                    </div>
+                `;
+
+                document.getElementById("sidebar-toggle").addEventListener("click", function() {
+                document.getElementById("sidebar").style.left = "0";
+            });
+            document.querySelectorAll(".sidebar-link").forEach(link => {
+            link.addEventListener("click", function(event) {
+                event.preventDefault();
+
+                let contentBox = document.querySelector(".content");
+
+                contentBox.classList.add("active");
+
+            });
+        });
+            document.getElementById("close-sidebar").addEventListener("click", function() {
+                document.getElementById("sidebar").style.left = "-250px";
+            });
+
+                document.getElementById("smallTab").innerHTML = `
+                    <p><strong>Name:</strong>${user.displayName}</p>
+                    <p><strong>Email:</strong>${user.email}</p>
+                    <p id="shop-status"><strong>Status:</strong> Checking...</p>
+                    <button id="logout-btn">Log out</button>
+                `;
+
+                document.getElementById('logout-btn').addEventListener('click', function () {
+                    signOut(auth).then(() => {
+                        window.location.replace("index.html");
+                    }).catch((error) => {
+                        console.error('Error logging out:', error);
+                    });
+                });
+
+                checkShopStatus(); 
+            }
+        });
+
+        function checkShopStatus() {
+            const openingHour = 8; 
+            const closingHour = 17; 
+
+            const daysOpen = [1, 2, 3, 4, 5];
+
+            const currentDay = new Date().getDay(); 
+            const currentHour = new Date().getHours(); 
+            const currentMinute = new Date().getMinutes(); 
+
+            let statusMessage = "";
+
+            if (daysOpen.includes(currentDay)) {
+                if (currentHour >= openingHour && currentHour < closingHour) {
+                    const closingTime = new Date();
+                    closingTime.setHours(closingHour, 0, 0, 0);
+
+                    const diff = closingTime - new Date(); 
+                    const remainingHours = Math.floor(diff / (1000 * 60 * 60)); 
+                    const remainingMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+                    statusMessage = `🟢 Open Now – Closes in ${remainingHours}h ${remainingMinutes}m.`;
+                } else {
+                    const openingTime = new Date();
+                    openingTime.setHours(openingHour, 0, 0, 0); 
+
+                    if (currentHour >= closingHour) {
+                        openingTime.setDate(openingTime.getDate() + 1); 
+                    }
+
+                    const diff = openingTime - new Date(); 
+                    const remainingHours = Math.floor(diff / (1000 * 60 * 60)); 
+                    const remainingMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+                    statusMessage = `🔴 Closed – Opens in ${remainingHours}h ${remainingMinutes}m.`;
+                }
+            } else {
+                statusMessage = "🔴 Closed – Opens Monday at 8:00 AM.";
+            }
+
+            const shopStatusElement = document.getElementById("shop-status");
+            if (shopStatusElement) {
+                shopStatusElement.innerHTML = `<strong>Status:</strong> ${statusMessage}`;
+            }
+        }
+
+        window.onload = function () {
+            checkShopStatus();
+            setInterval(checkShopStatus, 60000);
+        };
+
+        document.addEventListener('click', function(event) {
+            const smallTab = document.getElementById('smallTab');
+            const profileBtn = document.getElementById('profile-btn');
+
+            if (!smallTab.contains(event.target) && !profileBtn.contains(event.target)) {
+                smallTab.classList.remove('open');
+            }
+        });
+
+        document.querySelectorAll('.settings-btn').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                let parent = this.closest('.document-item');
+                parent.classList.toggle('active');
+
+                document.querySelectorAll('.document-item').forEach(item => {
+                    if (item !== parent) {
+                        item.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        document.addEventListener('click', function () {
+            document.querySelectorAll('.document-item').forEach(item => {
+                item.classList.remove('active');
+            });
+        });
+        document.addEventListener("DOMContentLoaded", function () {
+    const sidebar = document.getElementById("sidebar");
+    const openBtn = document.getElementById("sidebar-toggle");
+    const closeBtn = document.getElementById("close-sidebar");
+
+    // Show sidebar
+    openBtn.addEventListener("click", function () {
+        sidebar.classList.add("active");
+    });
+
+    // Hide sidebar
+    closeBtn.addEventListener("click", function () {
+        sidebar.classList.remove("active");
+    });
+});
+    </script>
+
+</body>
+</html>

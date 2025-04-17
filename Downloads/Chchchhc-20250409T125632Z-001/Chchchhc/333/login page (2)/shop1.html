@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uniform Shop</title>
+    <link rel="icon" href="icon.png"/>
+
+    <style>
+       body { 
+            font-family: Arial, sans-serif; 
+            background: rgb(238,174,202);
+            background: radial-gradient(circle, rgba(238,174,202,1) 0%, rgba(148,187,233,1) 100%);            
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+            transition: background 1s ease-in-out;
+            padding: 20px;
+            background: linear-gradient(45deg, #000000, #0e2b4b, #148676);
+    background-size: 400% 400%;
+    animation: gradientShift 10s ease infinite;
+}
+
+/* Animation for background movement */
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+
+        h2, h3 {
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        a {
+            text-decoration: none;
+            background: rgb(22, 112, 239);
+            background: radial-gradient(circle, rgb(11, 124, 216) 72%, rgb(5, 97, 188) 100%);            padding: 10px 15px;
+            color:rgb(242, 242, 234);
+            border-radius: 5px;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            transition: 0.3s;
+        }
+        a:hover {
+            background: #1b38de;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            transition: linear 0.3s;
+        }
+
+        #shop-list {
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center; 
+        }
+
+        .product {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin: 10px;
+            box-shadow: 0px 5px 15px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s ease-in-out forwards;
+            max-width: 200px; 
+            width: 100%;
+        }
+
+        .product img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover; 
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .product span {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .description {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        button {
+            background: rgb(255,255,255);
+            background: rgb(22, 112, 239);
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: 0.3s ease-in-out;
+            position: relative;
+            overflow: hidden;
+            color: rgb(255, 255, 255);
+
+        }
+
+        button:hover {
+            background: rgb(255, 225, 0);
+            background: radial-gradient(circle, rgb(1, 64, 73) 0%, rgb(11, 41, 95) 75%);
+            transform: scale(1.1);
+        }
+
+
+        /* Add to Cart Notification */
+        .cart-notification {
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: 0.5s;
+            opacity: 0;
+        }
+
+        .cart-notification.show {
+            top: 20px;
+            opacity: 1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .product {
+                max-width: 90%; 
+                width: 90%;
+            }
+
+            .product img {
+                width: 80px; 
+                height: 80px;
+            }
+
+            button {
+                padding: 10px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .product img {
+                width: 60px; 
+                height: 60px;
+            }
+
+            button {
+                padding: 8px 18px;
+            }
+        }
+        
+    </style>
+</head>
+<body>
+
+    <a href="main.html">Go to Main Page</a>
+    <br>
+    <a href="cart.html">Check your cart</a>
+
+    <h3>🛒 Available Products</h3>
+    <div id="shop-list"></div>
+
+    <div class="cart-notification" id="cart-notification">Item added to cart! ✅</div>
+
+    <script>
+        const shopItems = [
+            { id: 1, name: "PE shirt", price: 50000, description: ".", image: "" },
+            { id: 2, name: "Test", price: 20000, description: "", image: "https://via.placeholder.com/100" },
+            { id: 3, name: "Type A", price: 2500, description: "", image: "https://via.placeholder.com/100" },
+            { id: 4, name: "Test", price: 0.1, description: "", image: "images/bg1.png" }
+        ];
+
+        function displayShopItems() {
+            const shopList = document.getElementById("shop-list");
+            shopList.innerHTML = "";
+            shopItems.forEach((item, index) => {
+                setTimeout(() => {
+                    shopList.innerHTML += `
+                        <div class="product" style="animation-delay: ${index * 0.2}s;">
+                            <img src="${item.image}" alt="${item.name}">
+                            <span>${item.name} - ₱${item.price}</span>
+                            <div class="description">${item.description}</div>
+                            <button onclick="addToCart(${item.id})">Add to Cart</button>
+                        </div>
+                    `;
+                }, index * 200);
+            });
+        }
+
+        function addToCart(id) {
+            let cart = JSON.parse(localStorage.getItem("cart")) || [];
+            const item = shopItems.find(product => product.id === id);
+            cart.push(item);
+            localStorage.setItem("cart", JSON.stringify(cart));
+
+            let notification = document.getElementById("cart-notification");
+            notification.classList.add("show");
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 2000);
+        }
+
+        window.onload = displayShopItems;
+    </script>
+
+</body>
+</html>

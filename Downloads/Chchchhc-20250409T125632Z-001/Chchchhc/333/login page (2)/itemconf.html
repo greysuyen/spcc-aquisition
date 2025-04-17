@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <link rel="icon" href="icon.png"/>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: radial-gradient(circle, rgba(148,187,233,1) 0%, rgba(238,174,202,1) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .order-container {
+            width: 90%;
+            max-width: 500px;
+            background: rgba(0, 0, 0, 0.2);
+            color: black;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        h3 {
+            color: white;
+            text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
+        }
+        p {
+            font-size: 1.2em;
+            color: #333;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 1em;
+        }
+        .submit-btn {
+            background: lightblue;
+            color: black;
+            border: none;
+            cursor: pointer;
+            border-radius: 30px;
+            font-weight: bold;
+            padding: 15px;
+            margin-top: 20px;
+            width: 100%;
+        }
+        .submit-btn:hover {
+            background-color: #ff6347;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="order-container">
+        <a href="order.html" style="text-decoration: none;">
+            <p style="color: goldenrod;
+                    text-align: center;">Give us a feedback</p>
+        </a>
+        <h3 id="conf">Order Confirmation</h3>
+        <div id="order-details">
+            <p>Loading order details...</p>
+        </div>
+        <input type="text" id="name" placeholder="Your Name" disabled>
+        <input type="email" id="email" placeholder="Your Email" disabled>
+        <button class="submit-btn" id="btn" onclick="submitOrder()">Submit Order</button>
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbChGGE7nyQ7bHReH5TSykL_vdHrMoSEM",
+            authDomain: "spcc-login-dceca.firebaseapp.com",
+            projectId: "spcc-login-dceca",
+            storageBucket: "spcc-login-dceca.firebasestorage.app",
+            messagingSenderId: "944505962080",
+            appId: "1:944505962080:web:2357f70b1d0b96bcc58d05",
+            measurementId: "G-N261DVNLW8"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+    
+        let currentUser = null;
+    
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById("name").value = user.displayName || "No Name Found";
+                document.getElementById("email").value = user.email || "No Email Found";
+                currentUser = user;
+            } else {
+                window.location.href = "index.html"; 
+            }
+        });
+    
+        async function fetchOrders() {
+            const querySnapshot = await getDocs(collection(db, "orders"));
+            const ordersDiv = document.getElementById("orders-list");
+            
+            ordersDiv.innerHTML = ""; 
+    
+            querySnapshot.forEach((doc) => {
+                console.log(doc.id, " => ", doc.data());
+                let orderHTML = `<p><strong>Order by: ${doc.data().name}</strong><br>`;
+                orderHTML += `Email: ${doc.data().email}<br>`;
+                orderHTML += `Total Price: ₱${doc.data().totalPrice.toLocaleString()}</p>`;
+                ordersDiv.innerHTML += orderHTML; // Append each order to the orders-list div
+            });
+        }
+    
+        window.onload = function() {
+            const selectedItems = JSON.parse(localStorage.getItem("selectedItems"));
+            const orderDetailsDiv = document.getElementById("order-details");
+            
+            // Debugging: Check if selected items are loaded properly
+            console.log("Selected Items:", selectedItems);
+    
+            if (selectedItems && selectedItems.length > 0) {
+                let orderHTML = "";
+                let totalPrice = 0;
+                selectedItems.forEach(item => {
+                    orderHTML += `<p><strong>${item.name} (x${item.quantity})</strong> - ₱${(item.price * item.quantity).toLocaleString()}</p>`;
+                    totalPrice += item.price * item.quantity;
+                });
+                orderHTML += `<hr><p><strong>Total: ₱${totalPrice.toLocaleString()}</strong></p>`;
+                orderDetailsDiv.innerHTML = orderHTML;
+            } else {
+                orderDetailsDiv.innerHTML = "<p>No items selected.</p>";
+            }
+        };
+    
+        window.submitOrder = async function() {
+            if (!currentUser) return alert("User not authenticated");
+    
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const selectedItems = JSON.parse(localStorage.getItem("selectedItems")) || [];
+            
+            // If no items are selected, prompt user and do not submit
+            if (selectedItems.length === 0) {
+                return alert("No items selected. Please add items to your cart before submitting.");
+            }
+    
+            let totalPrice = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+            try {
+                // Disable submit button to prevent multiple submissions
+                const submitButton = document.querySelector(".submit-btn");
+                submitButton.disabled = true;
+    
+                // Submit order to Firestore
+                await addDoc(collection(db, "orders"), {
+                    name,
+                    email,
+                    items: selectedItems,
+                    totalPrice,
+                    timestamp: new Date()
+                });
+    
+                alert("Order submitted successfully!");
+                localStorage.removeItem("selectedItems");
+    
+                // Re-enable the submit button
+                submitButton.disabled = false;
+    
+            } catch (error) {
+                console.error("Error submitting order:", error);
+                alert("Failed to submit order. Please try again.");
+                // Re-enable the submit button
+                submitButton.disabled = false;
+            }
+        };
+    
+        fetchOrders(); 
+    
+        
+    </script>
+</body>
+</html>

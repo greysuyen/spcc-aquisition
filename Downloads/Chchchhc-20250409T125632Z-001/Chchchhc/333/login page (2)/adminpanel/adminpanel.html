@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Admin Dashboard</title>
+    <link rel="icon" href="icon.png"/>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffe5e5;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            background-color: #007bff;
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        .navbar a {
+            color: white;
+            padding: 14px 20px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+        }
+
+        .navbar a:hover {
+            background-color: #0056b3;
+            border-radius: 5px;
+        }
+
+        .navbar-right {
+            float: right;
+        }
+
+        /* Dashboard Container Styling */
+        .dashboard-container {
+            max-width: 900px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0px 20px rgb(181, 241, 255), 0 0 20px rgb(194, 232, 255);
+        }
+
+        h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        /* Logout Button Styling */
+        .logout-btn {
+            position: absolute;
+            top: 25px;
+            left: 10px;
+            color: rgb(0, 0, 0);
+            background-color: #d00505;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: 0.2px dotted rgb(255, 255, 255);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: #ff011b;
+            padding: 10.5px 21px;
+            transition: linear .1s;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .order-details {
+            font-size: 12px;
+            color: #555;
+        }
+
+        .total-price {
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .timestamp {
+            color: #888;
+            font-size: 12px;
+        }
+
+        .expired-label {
+            color: red;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .expired {
+            background-color: #f8d7da;
+        }
+
+        .approved {
+            background-color: #d4edda !important;
+        }
+
+        @media screen and (max-width: 600px) {
+            body {
+                padding: 0;
+            }
+
+            .dashboard-container {
+                padding: 10px;
+                margin: 0;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            .logout-btn {
+                position: relative;
+                margin: 10px 0;
+                left: auto;
+                right: auto;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="../main.html" class="navbar-right">Home</a>
+    </div>
+
+    <div class="dashboard-container">
+        <h2>Admin Dashboard</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Order Details</th>
+                    <th>Total Price</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody id="orders-table-body">
+
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+    
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbChGGE7nyQ7bHReH5TSykL_vdHrMoSEM",
+            authDomain: "spcc-login-dceca.firebaseapp.com",
+            projectId: "spcc-login-dceca",
+            storageBucket: "spcc-login-dceca.firebasestorage.app",
+            messagingSenderId: "944505962080",
+            appId: "1:944505962080:web:2357f70b1d0b96bcc58d05",
+            measurementId: "G-N261DVNLW8"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+    
+        const EXPIRATION_TIME = 24 * 60 * 60 * 1000;
+    
+        function formatTimestamp(seconds) {
+            const date = new Date(seconds * 1000);
+            const options = {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            };
+            return date.toLocaleString('en-US', options);
+        }
+    
+        function loadOrders() {
+            const ordersTable = document.getElementById("orders-table-body");
+            ordersTable.innerHTML = "";
+    
+            const ordersQuery = query(collection(db, "orders"), orderBy("timestamp", "desc"));
+    
+            onSnapshot(ordersQuery, (querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const orderTime = data.timestamp.seconds;
+                    const currentTime = new Date().getTime() / 1000;
+                    const timeElapsed = (currentTime - orderTime) * 1000;
+    
+                    const isExpired = timeElapsed > EXPIRATION_TIME;
+                    let orderDetailsHTML = "";
+                    let totalPrice = 0;
+    
+                    data.items.forEach(item => {
+                        orderDetailsHTML += `<p class="order-details">${item.name} (x${item.quantity}) - ₱${(item.price * item.quantity).toLocaleString()}</p>`;
+                        totalPrice += item.price * item.quantity;
+                    });
+    
+                    const row = `<tr class="${isExpired ? 'expired' : ''}" id="order-${doc.id}">
+                        <td>${data.name} <br><span class="timestamp">Order Time: ${formatTimestamp(data.timestamp.seconds)}</span>
+                            ${isExpired ? '<span class="expired-label">Expired</span>' : ''}</td>
+                        <td>${orderDetailsHTML}</td>
+                        <td class="total-price">₱${totalPrice.toLocaleString()}</td>
+                        <td>${data.email}</td>
+                    </tr>`;
+    
+                    ordersTable.innerHTML += row;
+    
+                    if (isExpired) {
+                        deleteOrder(doc.id); // Remove expired orders
+                    }
+                });
+            });
+        }
+    
+        async function deleteOrder(orderId) {
+            try {
+                const orderRef = doc(db, "orders", orderId);
+                await deleteDoc(orderRef);
+                console.log(`Order with ID: ${orderId} has been deleted from Firestore.`);
+            } catch (error) {
+                console.error("Error deleting order: ", error);
+            }
+        }
+    
+        window.onload = loadOrders;
+    
+        // Firebase Auth - onAuthStateChanged
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.replace("adminlogin.html"); // Redirect if not authenticated
+            } else {
+                const photoURL = user.photoURL || "default-profile.png"; // Default profile image
+    
+                // Update profile button to look like a settings menu
+           // Logout process
+           document.getElementById('logout-btn').addEventListener('click', function () {
+    // Sign out from Firebase
+    signOut(auth).then(() => {
+        // Set a flag to indicate the user has logged out
+        sessionStorage.setItem('loggedOut', 'true');
+        
+        // Force a redirect to login page, removing the current page from history stack
+        window.location.replace("adminlogin.html");
+
+        // Prevent the user from navigating back after logout
+        window.history.pushState(null, null, location.href); 
+        window.history.forward();  // Move forward to prevent back
+    }).catch((error) => {
+        console.error('Error logging out:', error);
+    });
+});
+    
+                checkShopStatus();  // Check shop status after updating user info
+            }
+        });
+    
+        // Prevent going back to the previous page after logging out
+        function preventBackNavigation() {
+            // Push a new history state to prevent navigating back to the current page
+            window.history.pushState(null, null, location.href);
+            window.history.forward(); // Forward to the next page (this prevents going back)
+        }
+    
+        window.onload = loadOrders;
+    
+    </script>
+</body>
+</html> 
